@@ -1,18 +1,19 @@
 # Intro
-THIS IS A EXPERIMENT - DO NOT USE!
+This is an experimental NMEA0183 parser/printer. 
+If you need a mature NMEA0183 parser please check-out https://github.com/adrianmo/go-nmea
 
-This is a NMEA0183 parser/printer.
-
-The spec is based on https://gpsd.gitlab.io/gpsd/NMEA.html
+The code in this repo uses a manual translation of https://gpsd.gitlab.io/gpsd/NMEA.html into a spec.yaml to generate a parser and printer.
 
 
 ## Code generation
 
+```
 spec.yaml --> transform --> render --> compile
                  ^            ^
                  |            |
               impl specific  templates
               data
+```
 
 Transformation prepares the data for easy rendering.
 1. Map spec types to implementation types, for example Float maps to float64.

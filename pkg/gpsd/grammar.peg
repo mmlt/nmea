@@ -1,0 +1,28 @@
+package gpsd
+
+type parser Peg {
+}
+
+Sentence <- Title LongDescription Codeblock Fields Misc !.
+
+Title <- '===' sp Mnemonic sp '-' sp ShortDescription nl
+
+Mnemonic <- < [A-Z]+ > { fmt.Println("Mnemonic", text) }
+
+ShortDescription <- < []+ >  { fmt.Println("ShortDescription", text) }
+
+LongDescription <- textline textline nl 
+
+textline <- < [^\n]+ > { fmt.Println("LongDescription", text) }
+
+Codeblock <- nl
+
+Fields <- nl
+
+Misc <- nl
+
+
+//blancline <- nl sp nl
+
+sp <- ( ' ' / '\t' )*
+nl <- '\n'

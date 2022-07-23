@@ -26,36 +26,52 @@ type Sentence interface {
 	TalkerID() string //TODO rename to Talker
 }
 
-// Parse parses the given string into the correct sentence type.
+// UnkownTypeError is used when a sentence type is encountered that is not implemented by the software.
+type UnkownTypeError struct {
+	Type string
+}
+
+func (e UnkownTypeError) Error() string {
+	return fmt.Sprintf("unknown sentence type: %s", e.Type)
+}
+
+// Parse parses a NME0183 formmated string and returns a Sentence.
 func Parse(s string) (Sentence, error) {
+	var err error
+
 	b, err := stringToBase(s)
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.HasPrefix(b.Raw, SentenceStart) {
+	var sentence Sentence
+
+	strt := b.Raw[0:1]
+	switch strt {
+	case "$":
 		// MTK message types share the same format
 		// so we return the same struct for all types.
 		// switch s.Talker {
 		// case TypeMTK:
 		// 	return newMTK(s)
 		// }
-
-		if p, ok := parsers[b.Type]; ok {
-			x, err := p(b)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %w", b.Type, err)
-			}
-			return x, nil
+		p := parsers[b.Type]
+		if p == nil {
+			return nil, UnkownTypeError{Type: b.Type}
 		}
+		sentence, err = p(b)
+	case "!":
+		// AIVDM/AIVDO encapsulated data
+		// 	switch s.Type {
+		// 	case TypeVDM, TypeVDO:
+		// 		return newVDMVDO(s)
+		// 	}
+		return nil, fmt.Errorf("AIVDM/AIVDO NIY")
+	default:
+		return nil, fmt.Errorf("sentence should start with $ or ! but got: %s", strt)
 	}
-	// if strings.HasPrefix(s.Raw, SentenceStartEncapsulated) {
-	// 	switch s.Type {
-	// 	case TypeVDM, TypeVDO:
-	// 		return newVDMVDO(s)
-	// 	}
-	// }
-	return nil, &NotSupportedError{Prefix: b.Prefix()}
+
+	return sentence, err
 }
 
 // stringToBase parses a raw message into it's fields
